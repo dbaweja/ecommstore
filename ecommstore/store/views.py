@@ -5,6 +5,57 @@ from rest_framework import status
 from .models import Product, Category
 from .serializers import ProductSerializer, CategorySerializer 
 
+
+# View for adding, deleting, and updating a category
+@api_view(["GET", "POST", "PUT", "DELETE"])
+def category(request):
+    category_id = request.GET.get('id')
+
+    # If the category id is not defined return all categories or create a new category
+    if not category_id:
+        # Handle GET to retreive all categories
+        if request.method == 'GET':
+            categories = Category.objects.all()
+            category_serialized = CategorySerializer(categories, many=True)
+            return Response(category_serialized.data, status=status.HTTP_200_OK)
+        # Handle POST to create a new category
+        elif request.method == 'POST':
+            category_serialized = CategorySerializer(data=request.data)
+            if category_serialized.is_valid():
+                category_serialized.save()
+                return Response(category_serialized.data, status=status.HTTP_201_CREATED)
+        # If we got this far, the request is invalid
+        return Response(category_serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    # If the id is defined
+    else:
+        # retreive the category object by its id
+        try:
+            category = Category.objects.get(pk=category_id)
+        except Category.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        # Handle GET to retreive the category by its id
+        if request.method == 'GET':
+            category_serialized = CategorySerializer(category)
+            return Response(category_serialized.data, status=status.HTTP_200_OK)
+        
+        # Handle PUT to update the category by its id
+        elif request.method == 'PUT':
+            category_serialized = CategorySerializer(category, data=request.data)
+            if category_serialized.is_valid():
+                category_serialized.save()
+                return Response(category_serialized.data, status=status.HTTP_200_OK)
+            return Response(category_serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Handle DELETE to delete the category by its id
+        elif request.method == 'DELETE':
+            category.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    # If nothing is returned so far, it is a bad request that we dont' know how to handle    
+    return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
 # View for retriving, updating and deleting a product through its id
 # Furthermore, if a pk is not provided, the view will search for a product by name
 @api_view(["GET", "POST", "PUT", "DELETE"])
