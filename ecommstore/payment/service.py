@@ -1,7 +1,8 @@
+from ecommstore.payment.gateways.payment_gateways import RazorpayPaymentGateway, StripePaymentGateway
 
 class PaymentService:
     def __init__(self):
-        pass
+        self.payment_gateway = RazorpayPaymentGateway()
 
     def initiate_payment(self, order_id, amount):
-        pass
+        return self.payment_gateway.generate_payment_link(order_id, amount)
