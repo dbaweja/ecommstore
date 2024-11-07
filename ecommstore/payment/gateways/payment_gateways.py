@@ -8,9 +8,11 @@ class PaymentGateway(ABC):
     def generate_payment_link(self, order_id, amount):
         pass
 
-class RazorpayGateway(PaymentGateway):
+class RazorpayPaymentGateway(PaymentGateway):
     def __init__(self):
-        self.client = razorpay.Client(auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET))
+        self.client = razorpay.Client(
+            auth=(settings.RAZORPAY_API_KEY, settings.RAZORPAY_API_SECRET)
+            )
 
     def generate_payment_link(self, order_id, amount):
         #   order = self.client.order.create({"amount": amount, "currency": "INR", "payment_capture": "1"})
