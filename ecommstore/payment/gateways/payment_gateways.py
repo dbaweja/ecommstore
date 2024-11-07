@@ -20,11 +20,11 @@ class RazorpayPaymentGateway(PaymentGateway):
         payment_data = {
             "amount": amount,
             "currency": "INR",
-            "description": "For XYZ purpose",
+            "description": "Demo Payment Description",
             "customer": {
-                "name": "karan ",
-                "email": "karan.bhatia_1@scaler.com",
-                "contact": "+918295053001"
+                "name": "Dushyant Baweja",
+                "email": "dbaweja@gmail.com",
+                "contact": "+919889883874"
             },
             "notify": {
                 "sms": True,
