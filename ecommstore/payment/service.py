@@ -1,4 +1,4 @@
-from ecommstore.payment.gateways.payment_gateways import RazorpayPaymentGateway, StripePaymentGateway
+from .gateways.payment_gateways import RazorpayPaymentGateway, StripePaymentGateway
 
 class PaymentService:
     def __init__(self):

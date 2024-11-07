@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from ecommstore.payment.service import PaymentService
+from .service import PaymentService
 from store.serializers import OrderSerializer
 from store.models import Order
 
