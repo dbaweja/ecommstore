@@ -10,3 +10,9 @@ class Product(models.Model):
 class Category(models.Model):
     name = models.CharField(max_length=255)
     products = models.ManyToManyField(Product)
+
+class Order(models.Model):
+    order_id = models.CharField(max_length=255)
+    amount = models.IntegerField()
+    payment_status = models.BooleanField(default=False)
+    payment_id = models.CharField(max_length=255, null=True)
