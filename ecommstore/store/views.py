@@ -2,6 +2,8 @@ from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.views import APIView
 from .models import Product, Category
 from .serializers import ProductSerializer, CategorySerializer 
 
@@ -118,4 +120,27 @@ def product(request):
             return Response(status=status.HTTP_204_NO_CONTENT)
     
     return Response(status=status.HTTP_400_BAD_REQUEST)
+    
+
+# View for handling search, pagination, and sorting of products
+class ProductPagination(PageNumberPagination):
+    page_size = 5
+    page_size_query_param = 'page_size'
+
+class ProductViewSet(APIView):
+    def post(self, request, format=None):
+        page_number = request.data.get('page_number', 1)
+        page_size = request.data.get('page_size', 5)
+        search_term = request.data.get('search_term', '')
+        ordering = request.data.get('ordering', '-name')
+
+        products = Product.objects.filter(name__icontains=search_term).order_by(ordering)
+
+        paginator = ProductPagination()
+        paginator.page_size = page_size
+        paginator.page = page_number
+        result_page = paginator.paginate_queryset(products, request)
+
+        product_serialized = ProductSerializer(result_page, many=True)
+        return paginator.get_paginated_response(product_serialized.data)
     
