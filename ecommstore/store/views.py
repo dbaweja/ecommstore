@@ -7,7 +7,6 @@ from rest_framework.views import APIView
 from .models import Product, Category, Order, OrderItem
 from .serializers import ProductSerializer, CategorySerializer, OrderSerializer, OrderItemSerializer
 import requests
-from pprint import pprint
 
 # View for adding, deleting, and updating a category
 @api_view(["GET", "POST", "PUT", "DELETE"])
@@ -173,10 +172,7 @@ class CreateOrderView(APIView):
                 "quantity": quantity,
                 "price": item_price
             })
-        pprint(order_items)
         order = Order.objects.create(amount=total_amount)
-        pprint("Created Order")
-        pprint(order)
         for order_item in order_items:
             OrderItem.objects.create(
                 order=order,
@@ -184,13 +180,9 @@ class CreateOrderView(APIView):
                 quantity=order_item['quantity'],
                 price=order_item['price']
             )
-        pprint("Attempting serialization")
         order_serialized = OrderSerializer(order)
         order_data = order_serialized.data
         order_data['total_amount'] = str(order.amount)
-        pprint("Serialization Complete")
-        pprint(order_serialized)
-        pprint("Attempting to send request to payment service")
         url = "http://localhost:8000/payment/"
         try:
             response = requests.post(url, json=order_data)
