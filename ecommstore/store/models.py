@@ -13,7 +13,7 @@ class Category(models.Model):
 
 class Order(models.Model):
     order_id = models.CharField(max_length=255)
-    amount = models.IntegerField()
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_status = models.BooleanField(default=False)
     payment_id = models.CharField(max_length=255, null=True)
 

@@ -4,9 +4,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
-from .models import Product, Category
-from .serializers import ProductSerializer, CategorySerializer 
-
+from .models import Product, Category, Order, OrderItem
+from .serializers import ProductSerializer, CategorySerializer, OrderSerializer, OrderItemSerializer
+import requests
+from pprint import pprint
 
 # View for adding, deleting, and updating a category
 @api_view(["GET", "POST", "PUT", "DELETE"])
@@ -136,6 +137,7 @@ class ProductViewSet(APIView):
 
         products = Product.objects.filter(name__icontains=search_term).order_by(ordering)
 
+        # Pagination
         paginator = ProductPagination()
         paginator.page_size = page_size
         paginator.page = page_number
@@ -144,3 +146,56 @@ class ProductViewSet(APIView):
         product_serialized = ProductSerializer(result_page, many=True)
         return paginator.get_paginated_response(product_serialized.data)
     
+class CreateOrderView(APIView):
+    def post(self, request):
+        items_data = request.data.get("items", [])
+
+        if not items_data:
+            return Response({"error": "No items provided."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        order_items = []
+        total_amount = 0
+
+        # Process each item 
+        for item in items_data:
+            try:
+                product = Product.objects.get(id=item['product_id'])
+            except Product.DoesNotExist:
+                return Response({"error": f"Product with id {item['product_id']} not found."}, status=status.HTTP_404_NOT_FOUND)
+            
+            quantity = item.get("quantity", 1)
+            item_price = product.price * quantity
+            total_amount += item_price
+
+            # Create OrderItems
+            order_items.append({
+                "product": product,
+                "quantity": quantity,
+                "price": item_price
+            })
+        pprint(order_items)
+        order = Order.objects.create(amount=total_amount)
+        pprint("Created Order")
+        pprint(order)
+        for order_item in order_items:
+            OrderItem.objects.create(
+                order=order,
+                product=order_item['product'],
+                quantity=order_item['quantity'],
+                price=order_item['price']
+            )
+        pprint("Attempting serialization")
+        order_serialized = OrderSerializer(order)
+        order_data = order_serialized.data
+        order_data['total_amount'] = str(order.amount)
+        pprint("Serialization Complete")
+        pprint(order_serialized)
+        pprint("Attempting to send request to payment service")
+        url = "http://localhost:8000/payment/"
+        try:
+            response = requests.post(url, json=order_data)
+            return Response(response.json(), status=response.status_code)
+        except requests.exceptions.RequestException as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import razorpay
 import json
 from ecommstore import settings
-
+from pprint import pprint
 class PaymentGateway(ABC):
     @abstractmethod
     def generate_payment_link(self, order_id, amount):
@@ -17,6 +17,8 @@ class RazorpayPaymentGateway(PaymentGateway):
     def generate_payment_link(self, order_id, amount):
         #   order = self.client.order.create({"amount": amount, "currency": "INR", "payment_capture": "1"})
         #   return order["short_url"]
+        amount = int(amount * 100) # converting to paise
+        
         payment_data = {
             "amount": amount,
             "currency": "INR",
@@ -35,7 +37,14 @@ class RazorpayPaymentGateway(PaymentGateway):
             "callback_method": "get"
         }
 
-        payment_link = self.client.payment_link.create(payment_data)
+        pprint("Creating payment link with: " +str(payment_data))
+        try:
+            payment_link = self.client.payment_link.create(payment_data)
+        except Exception as e:
+            pprint(f"An error occurred while creating payment link: {e}")
+            return json.dumps({"error": "An error occurred while creating payment link."})
+        
+        pprint("payment link is created.")
         return json.dumps(payment_link)
     
 class StripePaymentGateway(PaymentGateway):
