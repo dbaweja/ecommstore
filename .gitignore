@@ -126,9 +126,15 @@ celerybeat.pid
 .venv
 env/
 venv/
+django_clean/
 ENV/
 env.bak/
 venv.bak/
+
+# Virtual environment folders (any pattern)
+*_env/
+*-env/
+.python-version
 
 # Spyder project settings
 .spyderproject
